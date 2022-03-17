@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 
-function usage() {
+usage() {
     cat <<USAGE
 
     Usage: $0 [-r remove]
@@ -46,12 +46,15 @@ then
     python3 -m pip install --user ansible
 fi
 
-# fetch playbook
+# fetch playbook if not exists
 PLAYBOOK_FILE=main.yaml
-if [[ $REMOVE_PACKAGES == false ]]; then
+if ! $REMOVE_PACKAGES
+then
     PLAYBOOK_FILE=rollback.yaml
 fi
-if [[ test -f "$PLAYBOOK_FILE" == false]]; then
+
+if ! ls $PLAYBOOK_FILE &> /dev/null
+then
     echo "Retrieving playbook: $PLAYBOOK_FILE"
     wget -O ./$PLAYBOOK_FILE https://raw.githubusercontent.com/geertpingen/home/main/ansible/$PLAYBOOK_FILE
 fi
