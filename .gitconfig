@@ -1,0 +1,6 @@
+[commit]
+        gpgsign = true
+[user]
+        signingkey = A964EF9A6CC1918B
+        name = Geert Pingen
+        email = geertpingen@gmail.com

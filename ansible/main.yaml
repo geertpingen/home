@@ -1,0 +1,17 @@
+- hosts: localhost
+  tasks:
+  - name: Add keys - Microsoft
+    become: true
+    shell: |
+      curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+      install -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/microsoft-archive-keyring.gpg
+  - name: Add ppa - Visual Studio Code
+    apt_repository:
+      state: present
+      repo: deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/vscode stable main
+  - name: Install packages
+    apt:
+      state: present
+      pkg:
+      - apt-transport-https
+      - code-insiders
