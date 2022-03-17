@@ -5,6 +5,7 @@
     shell: |
       curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
       install -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/microsoft-archive-keyring.gpg
+      rm microsoft.gpg
   - name: Add ppa - Visual Studio Code
     apt_repository:
       state: present

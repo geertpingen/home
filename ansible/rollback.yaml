@@ -3,7 +3,6 @@
   - name: Remove keys - Microsoft
     become: true
     shell: |
-      rm microsoft.gpg
       rm /usr/share/keyrings/microsoft-archive-keyring.gpg
   - name: Remove ppa - Visual Studio Code
     apt_repository:
