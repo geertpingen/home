@@ -1,18 +1,187 @@
 - hosts: localhost
   tasks:
-  - name: Add keys - Microsoft
+  - name: Fetch fonts
+    become: true
+    shell: |
+      wget -O MesloLGS-NF-Bold-Italic.ttf https://raw.githubusercontent.com/geertpingen/home/main/fonts/MesloLGS-NF-Bold-Italic.ttf
+      wget -O MesloLGS-NF-Bold.ttf https://raw.githubusercontent.com/geertpingen/home/main/fonts/MesloLGS-NF-Bold.ttf
+      wget -O MesloLGS-NF-Italic.ttf https://raw.githubusercontent.com/geertpingen/home/main/fonts/MesloLGS-NF-Italic.ttf
+      wget -O MesloLGS-NF-Regular.ttf https://raw.githubusercontent.com/geertpingen/home/main/fonts/MesloLGS-NF-Regular.ttf
+      mkdir -p ~/.local/share/fonts/
+      mv *ttf ~/.local/share/fonts/
+      fc-cache -f -v
+  - name: Fetching dotfiles - .zshrc
+    become: true
+    get_url:
+      url: https://raw.githubusercontent.com/geertpingen/home/main/.zshrc
+      dest: $HOME/.zshrc
+  - name: Fetching dotfiles - .p10k.zsh
+    become: true
+    get_url:
+      url: https://raw.githubusercontent.com/geertpingen/home/main/.p10k.zsh
+      dest: $HOME/.p10k.zsh
+  - name: Fetching dotfiles - .gitconfig
+    become: true
+    get_url:
+      url: https://raw.githubusercontent.com/geertpingen/home/main/.gitconfig
+      dest: $HOME/.gitconfig_default
+  - name: Add public signing keys - Google Cloud
+    become: true
+    shell: |
+      curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  - name: Add public signing keys - Microsoft
     become: true
     shell: |
       curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
       install -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/microsoft-archive-keyring.gpg
       rm microsoft.gpg
-  - name: Add ppa - Visual Studio Code
+  - name: Add keys - HashiCorp
+    become: true
+    shell: |
+      curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+  - name: Add keys - Spotify
+    become: true
+    shell: |
+      curl -sS https://download.spotify.com/debian/pubkey_5E3C45D7B312C643.gpg | apt-key add - 
+  - name: Add ppa - Python deadsnakes
+    become: true
     apt_repository:
       state: present
-      repo: deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/vscode stable main
+      repo: ppa:deadsnakes/ppa
+  - name: Add ppa - HashiCorp
+    become: true
+    apt_repository:
+      state: present
+      repo: deb [arch=$(dpkg --print-architecture)] https://apt.releases.hashicorp.com $(lsb_release -cs) main
+  - name: Add ppa - Kubernetes
+    become: true
+    apt_repository:
+      state: present
+      repo: deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
+  - name: Add ppa - Visual Studio Code
+    become: true
+    apt_repository:
+      state: present
+      repo: deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/vscode stable main
+  - name: Add ppa - Spotify
+    become: true
+    apt_repository:
+      state: present
+      repo: deb http://repository.spotify.com stable non-free
+  - name: Add ppa - ksnip
+    become: true
+    apt_repository:
+      state: present
+      repo: ubuntuhandbook1/ksnip
+  - name: Downloading konsole profile
+    become: true
+    get_url:
+      url: https://raw.githubusercontent.com/geertpingen/home/main/konsole/geert.profile
+      dest: $HOME/.local/share/konsole/$USER.profile
+  - name: Downloading konsole ui .rc
+    become: true
+    get_url:
+      url: https://raw.githubusercontent.com/geertpingen/home/main/konsole/konsoleui.rc
+      dest: $HOME/.local/share/kxmlgui5/konsole/konsoleui.rc
+  - name: Downloading konsole colour scheme
+    become: true
+    get_url:
+      url: https://raw.githubusercontent.com/geertpingen/home/main/konsole/github_dark.colorscheme
+      dest: /usr/share/konsole/github_dark.colorscheme
   - name: Install packages
+    become: true
     apt:
       state: present
       pkg:
       - apt-transport-https
+      - ca-certificates
+      - software-properties-common
+      - gcc
+      - curl
+      - git
       - code-insiders
+      - konsole
+      - firefox
+      - spotify-client
+      - ksnip
+      - chromium-browser
+      - vim
+      - gnome-tweaks
+      - protonvpn
+      - vlc
+      - zsh
+      - kubectl
+      - libusb-1.0-0
+      - libusb-1.0-0-dev
+      - autoconf
+      - tlp
+      - tlp-rdw
+      - fzf
+      - uidmap
+      - nemo
+      - terraform
+      - vagrant
+      - libvirt
+      - qemu
+      - vagrant-libvirt
+      - python3.10
+      - nim
+      - jq
+  - name: Install directly - Oh-my-zsh
+    become: true
+    shell: |
+      sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  - name: Install directly - Powerlevel10k
+    become: true
+    shell: |
+      git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+  - name: Install directly - Krew
+    become: true
+    shell: |
+      set -x; cd "$(mktemp -d)" &&
+      OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+      ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+      KREW="krew-${OS}_${ARCH}" &&
+      curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+      tar zxvf "${KREW}.tar.gz" &&
+      ./"${KREW}" install krew
+  - name: Install directly - nerdctl
+    become: true
+    shell: |
+      wget -O nerdctl-full-0.17.1-linux-amd64.tar.gz https://github.com/containerd/nerdctl/releases/download/v0.17.1/nerdctl-full-0.17.1-linux-amd64.tar.gz
+      tar Cxzvvf /usr/local nerdctl-full-0.17.1-linux-amd64.tar.gz
+  - name: Install directly - containerd-rootless
+    become: false
+    shell: |
+      containerd-rootless-setuptool.sh install
+      containerd-rootless-setuptool.sh install-buildkit
+  - name: Install directly - nemo gsettings
+    become: false
+    shell: |
+        xdg-mime default nemo.desktop inode/directory application/x-gnome-saved-search
+        gsettings set org.gnome.desktop.background show-desktop-icons false
+        gsettings set org.nemo.desktop show-desktop-icons true
+        gsettings set org.cinnamon.desktop.default-applications.terminal exec konsole
+  - name: Install directly - NVM (Node)
+    become: true
+    shell: |
+      wget -O - https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+  - name: Install directly - Golang
+    become: true
+    shell: |
+      wget -O golang-latest-linux-amd64.tar.gz "https://dl.google.com/go/$(curl https://golang.org/VERSION?m=text).linux-amd64.tar.gz"
+      rm -rf /usr/local/go && tar -C /usr/local -xzf golang-latest-linux-amd64.tar.gz
+  - name: Install directly - Dropbox
+    become: true
+    shell: |
+      cd $HOME && wget -O - "https://www.dropbox.com/download?plat=lnx.x86_64" | tar xzf -
+      $HOME/.dropbox-dist/dropboxd
+  - name: Install directly - Postman
+    become: true
+    shell: |
+      wget -O postman-linux64 https://dl.pstmn.io/download/latest/linux64
+      tar -xvf postman-linux64 -C /usr/bin
+  - name: Install directly - Joplin
+    become: true
+    shell: |
+      wget -O - https://raw.githubusercontent.com/laurent22/joplin/dev/Joplin_install_and_update.sh | bash

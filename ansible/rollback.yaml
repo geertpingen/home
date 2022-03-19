@@ -5,12 +5,20 @@
     shell: |
       rm /usr/share/keyrings/microsoft-archive-keyring.gpg
   - name: Remove ppa - Visual Studio Code
+    become: true
     apt_repository:
       state: absent
       repo: deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/vscode stable main
   - name: Remove packages
+    become: true
     apt:
       state: absent
       pkg:
       - apt-transport-https
       - code-insiders
+  - name: Remove directly - Joplin
+    become: true
+    shell: |
+      rm -r $HOME/.joplin &&
+      rm -r $HOME/.config/joplin-desktop
+      rm $HOME/.local/share/applications/appimagekit-joplin.desktop
