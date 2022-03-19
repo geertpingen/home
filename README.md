@@ -1,15 +1,15 @@
 # Home
 
-Configuration of home cluster and services/projects.
+Holds personal configs, install script, and home infrastructure.
 
 ## Install
 
-Hosts personal website, and install script for default environment:
+To automatically install home environment:
 
 ```shell
 curl -sfL https://get.pingen.dev | sh -
 ```
 
-## Projects
+## Infrastructure
 
-To add.
+See `./infrastructure` for home cluster deployment: https://github.com/geertpingen/home/tree/main/infrastructure
