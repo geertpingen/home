@@ -82,6 +82,8 @@ plugins=(
 	fzf
 	zsh-autosuggestions
 	git
+	docker
+	docker-compose
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -112,10 +114,22 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+KUBE_EDITOR=vim
 alias code="code-insiders"
+alias python="python3"
+alias k="kubectl"
+complete -F __start_kubectl k
+compdef __start_kubectl k
+
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+[[ /usr/bin/kubectl ]] && source <(kubectl completion zsh)
+[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /usr/bin/terraform terraform
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
